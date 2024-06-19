@@ -132,7 +132,17 @@ export class UserService {
   }
 
   async getMyData(modelId: string): Promise<UserEntity> {
-    const user_data = await this.userModel.findById(modelId);
+    const user_data = await this.userModel
+      .findById(modelId)
+      .select([
+        '_id',
+        'money_in_bank_account',
+        'money_in_wallet',
+        'email',
+        'account_number',
+        'ifsc_code',
+        'name',
+      ]);
     if (!user_data) {
       throw new HttpException(
         {
@@ -163,7 +173,7 @@ export class UserService {
     }
     const user_data = await this.userModel
       .findById(modelId)
-      .select(['money_in_bank_account']);
+      .select(['money_in_bank_account', 'money_in_wallet']);
     if (!user_data) {
       throw new HttpException(
         {
@@ -182,8 +192,10 @@ export class UserService {
         HttpStatus.EXPECTATION_FAILED,
       );
     }
+    console.log(user_data.money_in_wallet);
     user_data.money_in_wallet += amount;
     user_data.money_in_bank_account -= amount;
+
     await user_data.save();
     return {
       status: HttpStatus.OK,
@@ -209,7 +221,7 @@ export class UserService {
     }
     const user_data = await this.userModel
       .findById(modelId)
-      .select(['money_in_wallet']);
+      .select(['money_in_bank_account', 'money_in_wallet']);
     if (!user_data) {
       throw new HttpException(
         {

@@ -17,11 +17,12 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiPreconditionFailedResponse,
+  ApiResponse,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { CreateUserDto, LoginUserDto, SendMoneyDto } from './user.dto';
-import { UserEntity } from './user.entity';
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller({
@@ -128,6 +129,35 @@ export class UserController {
   @Get('/')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
+  @ApiUnauthorizedResponse({
+    schema: {
+      example: {
+        message: 'Unauthorized',
+        statusCode: 401,
+      },
+    },
+  })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        status: 200,
+        data: {
+          money_in_bank_account: 10000,
+          money_in_wallet: 0,
+          _id: '66731fa8816feed175d198eb',
+          email: 'sample@gmail.com',
+          account_number: '102711155012',
+          ifsc_code: 'SBIN1550096',
+          name: 'sample',
+        },
+      },
+    },
+  })
+  @ApiOperation({
+    summary: 'Get the data of logged in user',
+    description:
+      'This api expects you to pass the jwt token as part to get the data of the user, not passing token will result in un authorization error',
+  })
   async getMyData(@Request() request: Request & any) {
     const { modelId } = request.user;
     const user_data = await this.userService.getMyData(modelId);
@@ -140,6 +170,28 @@ export class UserController {
   @Put('send-to-wallet')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.EXPECTATION_FAILED,
+    schema: {
+      example: {
+        status: 417,
+        message: 'No Sufficient funds available for processing request',
+      },
+    },
+  })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        status: 200,
+        message: 'Successfully sent',
+      },
+    },
+  })
+  @ApiOperation({
+    summary: 'Send money to wallet',
+    description:
+      'User must to login to access this api, user should have enough funds to process the transaction failing will result in expectation failed error',
+  })
   async sendMoneyToWallet(
     @Request() request: Request & any,
     @Body() transaction: SendMoneyDto,
@@ -151,6 +203,11 @@ export class UserController {
   @Put('send-to-bank')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Send money to wallet',
+    description:
+      'User must to login to access this api, user should have enough funds to process the transaction failing will result in expectation failed error',
+  })
   async sendMoneyToBank(
     @Request() request: Request & any,
     @Body() transaction: SendMoneyDto,
