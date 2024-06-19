@@ -7,7 +7,6 @@ export class AppController {
 
   @Get()
   getHello(@Request() request: Request): string {
-    console.log(request.headers);
     return this.appService.getHello(request.headers['host']);
   }
 }
