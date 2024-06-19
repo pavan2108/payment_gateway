@@ -39,8 +39,21 @@ export class UserEntity {
   @Prop({
     type: String,
     required: true,
+    lowercase: true,
   })
   name: string;
+
+  @Prop({
+    type: Number,
+    default: 10000,
+  })
+  money_in_bank_account: number;
+
+  @Prop({
+    type: Number,
+    default: 0,
+  })
+  money_in_wallet: number;
 }
 
 export const UserEntitySchema = SchemaFactory.createForClass(UserEntity);
