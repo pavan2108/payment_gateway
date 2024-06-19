@@ -24,10 +24,10 @@ export class UserService {
     ) {
       throw new HttpException(
         {
-          status: HttpStatus.BAD_REQUEST,
+          status: HttpStatus.PRECONDITION_FAILED,
           message: 'Please enter a valid email address, password and username',
         },
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.PRECONDITION_FAILED,
       );
     }
     const is_email_exist = await this.userModel
@@ -38,10 +38,10 @@ export class UserService {
     if (is_email_exist) {
       throw new HttpException(
         {
-          status: HttpStatus.BAD_REQUEST,
+          status: HttpStatus.CONFLICT,
           message: 'Email already exists',
         },
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.CONFLICT,
       );
     }
     const account_number = generateRandomAccountNumber();
@@ -63,15 +63,24 @@ export class UserService {
     } catch (error) {
       throw new HttpException(
         {
-          status: HttpStatus.BAD_REQUEST,
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
           message: 'Error occurred while creating the user',
         },
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
   async login(user: Partial<UserDocument>) {
+    if (user.email === undefined || user.password === undefined) {
+      throw new HttpException(
+        {
+          status: HttpStatus.PRECONDITION_FAILED,
+          message: 'Please enter a valid email address, password',
+        },
+        HttpStatus.PRECONDITION_FAILED,
+      );
+    }
     const user_account_data = await this.userModel
       .findOne({
         email: user.email,
@@ -94,7 +103,7 @@ export class UserService {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          message: 'Email / password does not exist',
+          message: 'Email / password are in correct',
         },
         HttpStatus.BAD_REQUEST,
       );
